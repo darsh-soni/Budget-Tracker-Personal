@@ -1,0 +1,38 @@
+{
+  "name": "pocket-ledger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobile-first budget tracker PWA that logs Apple Wallet transactions via iOS Shortcuts.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "vapid": "node scripts/generate-vapid.mjs",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "13.3.0",
+    "@simplewebauthn/server": "13.3.3",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.2",
+    "next": "15.5.29",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "server-only": "^0.0.1",
+    "swr": "2.5.1",
+    "web-push": "3.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/web-push": "3.6.4",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
