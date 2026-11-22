@@ -41,7 +41,10 @@ function parseCents(input: unknown): number | null {
 const normM = (m: string) => m.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9&'.\/+\- ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const mKey = (m: string) => normM(m).replace(/#\s*\d+/g, ' ').replace(/\b(?:store|str|no)\.?\s*\d+\b/g, ' ').replace(/\b\d{3,}\b/g, ' ').replace(/\*+/g, ' ').replace(/\s+/g, ' ').trim() || normM(m) || m.toLowerCase().trim();
 const reEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const kwHit = (t: string, k: string) => new RegExp('(^|[^a-z0-9])' + reEsc(k) + '($|[^a-z0-9])').test(t);
+const kwRe = (t: string, k: string) => new RegExp('(^|[^a-z0-9])' + reEsc(k) + '($|[^a-z0-9])').test(t);
+// Also compare with dashes, dots and apostrophes removed, so "Wal-Mart" matches "walmart".
+const squash = (x: string) => x.replace(/[-'.]/g, '');
+const kwHit = (t: string, k: string) => kwRe(t, k) || kwRe(squash(t), squash(k));
 const normC = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 function parseTime(input: unknown): Date | null {
   if (input == null || input === '') return null;

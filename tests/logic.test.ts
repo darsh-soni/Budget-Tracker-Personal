@@ -39,6 +39,9 @@ test('categorize prefers user rules and longest keyword', () => {
   assert.equal(categorize('Costco Gas', rules), 'transport');
   assert.equal(categorize('Barbershop', rules), null); // word boundary
   assert.equal(categorize('The Wine Bar', rules), 'dining');
+  const w = [{ keyword: 'walmart', category_id: 'groceries', source: 'default' as const }, { keyword: 'mcdonald', category_id: 'dining', source: 'default' as const }];
+  for (const m of ['Walmart', 'WAL-MART #1234', 'Walmart.ca', 'Walmart Supercentre', "Wal-Mart Canada"]) assert.equal(categorize(m, w), 'groceries', m);
+  assert.equal(categorize("McDonald's", w), 'dining');
 });
 
 test('matchCard uses alias, exact name, last4, fuzzy', () => {

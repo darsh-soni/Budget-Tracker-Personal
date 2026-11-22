@@ -41,7 +41,10 @@ function escapeRegex(s: string) {
 export function keywordMatches(text: string, keyword: string): boolean {
   const kw = keyword.trim();
   if (!kw) return false;
-  return new RegExp(`(^|[^a-z0-9])${escapeRegex(kw)}($|[^a-z0-9])`).test(text);
+  const re = (t: string, k: string) => new RegExp(`(^|[^a-z0-9])${escapeRegex(k)}($|[^a-z0-9])`).test(t);
+  // Also compare with dashes, dots and apostrophes removed, so "Wal-Mart" matches "walmart".
+  const squash = (x: string) => x.replace(/[-'.]/g, '');
+  return re(text, kw) || re(squash(text), squash(kw));
 }
 
 /**

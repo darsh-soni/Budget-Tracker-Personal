@@ -78,7 +78,10 @@ const decimal = (c) => (c < 0 ? '-' : '') + Math.floor(Math.abs(c) / 100) + '.' 
 const normM = (m) => String(m).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9&'.\/+\- ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const mKey = (m) => normM(m).replace(/#\s*\d+/g, ' ').replace(/\b(?:store|str|no)\.?\s*\d+\b/g, ' ').replace(/\b\d{3,}\b/g, ' ').replace(/\*+/g, ' ').replace(/\s+/g, ' ').trim() || normM(m);
 const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const kwHit = (t, k) => new RegExp('(^|[^a-z0-9])' + reEsc(k) + '($|[^a-z0-9])').test(t);
+const kwRe = (t, k) => new RegExp('(^|[^a-z0-9])' + reEsc(k) + '($|[^a-z0-9])').test(t);
+// Also compare with dashes, dots and apostrophes removed, so "Wal-Mart" matches "walmart".
+const squash = (x) => x.replace(/[-'.]/g, '');
+const kwHit = (t, k) => kwRe(t, k) || kwRe(squash(t), squash(k));
 const likeEsc = (s) => s.replace(/[%_\\]/g, (m) => '\\' + m);
 function categorize(merchant) {
   const t = normM(merchant), key = mKey(merchant); let best = null, rank = -1;
