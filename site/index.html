@@ -19,10 +19,12 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="app" aria-live="polite"></div>
-<div class="tabbar" id="tabbar" hidden><nav id="tabs" aria-label="Main"></nav></div>
+<header id="nav"></header>
+<main id="app"></main>
+<div class="tabbar" id="tabbar" hidden><div class="tabbar-inner"><nav class="tabcap glass" id="tabs" aria-label="Main"></nav><button class="fab" data-act="add" aria-label="Add expense" id="fab"></button></div></div>
 <div id="sheet-root"></div>
-<div id="toast-root"></div>
+<div id="alert-root"></div>
+<div id="toast-root" role="status" aria-live="polite"></div>
 <noscript><p style="padding:24px">Pocket Ledger needs JavaScript.</p></noscript>
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>

@@ -1,7 +1,7 @@
 /* Pocket Ledger service worker: caches the app shell so it opens offline.
    Data comes from Supabase (another origin) and is never cached here; the app keeps
    its own last-loaded snapshot for offline viewing. */
-const CACHE = 'pl-shell-v1';
+const CACHE = 'pl-shell-v2';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'config.js', 'vendor/supabase.js', 'manifest.webmanifest', 'icon.svg', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {
