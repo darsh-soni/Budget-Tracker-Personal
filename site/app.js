@@ -664,7 +664,12 @@ async function testWallet() {
   try {
     const res = await fetch(WALLET_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': S.user.api_token }, body: JSON.stringify({ amount: '$4.25', merchant: 'Test Coffee Shop', card, test: true }) });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `The endpoint answered ${res.status}. Is the wallet function deployed?`);
+    if (!res.ok) {
+      const why = data.error || data.message || data.msg || '';
+      if (res.status === 401 && !/api key/i.test(why)) throw new Error(`401 ${why || 'Unauthorized'}: in Supabase, turn off “Verify JWT” for the wallet function and click Save changes.`);
+      if (res.status === 401) throw new Error(`Invalid API key: ${S.user.api_token ? 'copy the key again.' : 'your account has no key yet. Run the setup SQL, then reopen the app.'}`);
+      throw new Error(`${res.status} ${why || 'Error'}. Check Edge Functions → wallet → Logs.`);
+    }
     const p = data.parsed || {};
     box.innerHTML = `<p class="foot" style="color:var(--good);font-weight:500">✓ Connection works. ${esc(money(p.amount_cents || 0))} at ${esc(p.merchant)} → ${p.card_matched ? `matched “${esc(p.card)}”` : `“${esc(p.card)}” not matched yet`}.</p>`;
   } catch (e) {
