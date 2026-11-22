@@ -18,7 +18,7 @@ with your URL and key ready to copy.
 ## Step-by-step
 
 1. **Open Shortcuts → Automation tab.** Tap **＋** (top-right) or **New Automation**.
-2. Scroll to the **Personal** section and tap **Transaction**.
+2. Scroll the list of triggers (or type in the search box at the top) and tap **Transaction**. There is no separate "Personal" section on iOS 17 and later.
 3. **When I tap any of:**
    - **Card**: tap *Choose* and select each Wallet card you want tracked.
    - **Category**: leave as *Any Category*.

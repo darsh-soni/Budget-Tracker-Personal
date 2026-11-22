@@ -105,7 +105,7 @@ export default function WalletSetup() {
       <ol className="steps group">
         <li>
           <div className="k">Open Shortcuts → Automation</div>
-          Tap <span className="kbd">＋</span> (or <span className="kbd">New Automation</span>), scroll to the <em>Personal</em> section and choose <span className="kbd">Transaction</span>.
+          Tap <span className="kbd">＋</span> (or <span className="kbd">New Automation</span>), scroll the list of triggers (or search) and choose <span className="kbd">Transaction</span>.
         </li>
         <li>
           <div className="k">Pick your cards</div>
