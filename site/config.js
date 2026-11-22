@@ -3,5 +3,5 @@
 // Never put the service_role key here.
 window.PL_CONFIG = {
   supabaseUrl: 'https://vysztgubotvftrzrwqnw.supabase.co',
-  supabaseAnonKey: '',  // the "anon" / "publishable" key
+  supabaseAnonKey: 'sb_publishable_PJOKFuaC-VCbl4qCDIAHMA_AIHa52az',
 };
