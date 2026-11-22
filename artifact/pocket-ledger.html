@@ -348,10 +348,15 @@ async function boot() {
 /* ───────────── Apple Wallet link capture ─────────────
    The Shortcut opens  APP_URL#w-<cents>-<Merchant-Words>--<Card-Words>  */
 function parseHash(h) {
-  const m = /^#?w-(\d{1,9})-(.+?)-{2,}(.*)$/.exec(h || '') || /^#?w-(\d{1,9})-(.+)$/.exec(h || '');
+  // Tolerate spaces (raw or %20) that Shortcuts may add around the hyphens.
+  let s = String(h || '').replace(/^#/, '');
+  try { s = decodeURIComponent(s); } catch {}
+  s = s.replace(/\s+/g, '-');
+  const m = /^w-+(\d{1,9})-+(.*)$/.exec(s);
   if (!m) return null;
-  const words = (s) => (s || '').split('-').filter(Boolean).join(' ').trim();
-  return { cents: Number(m[1]), merchant: words(m[2]) || 'Apple Pay', card: words(m[3]) };
+  const parts = m[2].split(/-{2,}/);
+  const words = (x) => (x || '').split('-').filter(Boolean).join(' ').trim();
+  return { cents: Number(m[1]), merchant: words(parts[0]) || 'Apple Pay', card: words(parts.slice(1).join('-')) };
 }
 function handleHash() {
   const h = location.hash;
