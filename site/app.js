@@ -393,21 +393,23 @@ function onCarousel(e) {
 
 /* ───────────── login ───────────── */
 function wireLogin() {
+  // Read the form BEFORE re-rendering: render() rebuilds the inputs and would empty them.
   const go = (id, fn) => $(id)?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const em = $('#lemail'); if (em) S.login.email = em.value.trim();
+    const f = { pass: $('#lpass')?.value || '', newpass: $('#lnewpass')?.value || '' };
     Object.assign(S.login, { busy: true, error: '' }); render();
-    try { await fn(); } catch (err) { S.login.error = err?.message || 'Something went wrong.'; }
+    try { await fn(f); } catch (err) { S.login.error = err?.message || 'Something went wrong.'; }
     S.login.busy = false; render();
   });
   const fail = (error) => { if (error) throw error; };
-  go('#signinf', async () => {
-    const { error } = await sb.auth.signInWithPassword({ email: S.login.email, password: $('#lpass').value });
+  go('#signinf', async (f) => {
+    const { error } = await sb.auth.signInWithPassword({ email: S.login.email, password: f.pass });
     if (error && /confirm/i.test(error.message)) throw new Error('Confirm your email first: open the link we sent you, then sign in here.');
     fail(error);
   });
-  go('#signupf', async () => {
-    const { data, error } = await sb.auth.signUp({ email: S.login.email, password: $('#lpass').value, options: { emailRedirectTo: location.origin + location.pathname } });
+  go('#signupf', async (f) => {
+    const { data, error } = await sb.auth.signUp({ email: S.login.email, password: f.pass, options: { emailRedirectTo: location.origin + location.pathname } });
     fail(error);
     if (!data.session) Object.assign(S.login, { step: 'checkemail', info: `We sent a confirmation link to ${S.login.email}. Open it (it may open in Safari, that’s fine), then come back here and sign in with your password.` });
   });
@@ -416,8 +418,8 @@ function wireLogin() {
     fail(error);
     Object.assign(S.login, { step: 'checkemail', info: `If ${S.login.email} has an account, a reset link is on its way. Open it on this device to choose a new password.` });
   });
-  go('#newpassf', async () => {
-    const { error } = await sb.auth.updateUser({ password: $('#lnewpass').value });
+  go('#newpassf', async (f) => {
+    const { error } = await sb.auth.updateUser({ password: f.newpass });
     fail(error);
     S.login.step = 'signin'; toast('Password updated');
     const { data } = await sb.auth.getSession(); if (data.session) await start(data.session);
