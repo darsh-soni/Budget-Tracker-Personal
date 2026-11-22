@@ -25,7 +25,7 @@ const S = {
   month: ymOf(new Date()), txByMonth: {},
   tab: 'cards', activeCard: 0, picked: null, pickedDay: null,
   search: { q: '', card: '', cat: '', from: '', to: '' }, activity: null, activityLoading: false,
-  sheet: null, login: { step: 'email', email: '', busy: false, error: '' },
+  sheet: null, login: { step: 'signin', email: '', busy: false, error: '', info: '' },
 };
 
 /* ───────────── helpers ───────────── */
@@ -231,11 +231,21 @@ function viewSetup() {
   return `<div class="center"><h1 class="title">Almost there</h1><p class="muted">This copy of Pocket Ledger isn’t connected to a database yet. Add your Supabase project URL and anon key to <code>config.js</code>, then reload. The README has step-by-step instructions.</p></div>`;
 }
 function viewLogin() {
-  const L = S.login;
+  const L = S.login, busy = L.busy ? 'disabled' : '';
+  const email = `<input class="t" id="lemail" type="email" inputmode="email" autocomplete="username" autocapitalize="none" placeholder="you@example.com" aria-label="Email" required value="${esc(L.email)}">`;
+  const pw = (id, ac, ph) => `<input class="t" id="${id}" type="password" autocomplete="${ac}" placeholder="${ph}" aria-label="${ph}" required minlength="8" style="border-top:.5px solid var(--sep)">`;
+  let body = '';
+  if (L.step === 'signin') body = `<form id="signinf"><div class="group">${email}${pw('lpass', 'current-password', 'Password')}</div><button class="btn" style="margin-top:12px" ${busy}>${L.busy ? 'Signing in…' : 'Sign In'}</button></form>
+    <button class="link" style="width:100%;margin-top:8px" data-act="loginstep" data-v="signup">New here? Create an account</button>
+    <button class="link" style="width:100%" data-act="loginstep" data-v="reset">Forgot password?</button>`;
+  else if (L.step === 'signup') body = `<form id="signupf"><div class="group">${email}${pw('lpass', 'new-password', 'Password (8+ characters)')}</div><button class="btn" style="margin-top:12px" ${busy}>${L.busy ? 'Creating…' : 'Create Account'}</button></form>
+    <button class="link" style="width:100%;margin-top:8px" data-act="loginstep" data-v="signin">Already have an account? Sign in</button>`;
+  else if (L.step === 'reset') body = `<form id="resetf"><p class="muted" style="text-align:center">We’ll email you a link to set a new password. Open it on this device.</p><div class="group">${email}</div><button class="btn" style="margin-top:12px" ${busy}>${L.busy ? 'Sending…' : 'Email Reset Link'}</button></form>
+    <button class="link" style="width:100%;margin-top:8px" data-act="loginstep" data-v="signin">Back to sign in</button>`;
+  else if (L.step === 'newpass') body = `<form id="newpassf"><p class="muted" style="text-align:center">Choose a new password.</p><div class="group">${pw('lnewpass', 'new-password', 'New password (8+ characters)').replace('border-top:.5px solid var(--sep)', '')}</div><button class="btn" style="margin-top:12px" ${busy}>${L.busy ? 'Saving…' : 'Save Password'}</button></form>`;
+  else if (L.step === 'checkemail') body = `<div class="banner info"><span aria-hidden="true" style="font-size:22px">✉️</span><span class="small">${esc(L.info)}</span></div><button class="btn alt" style="margin-top:12px" data-act="loginstep" data-v="signin">I’ve confirmed. Sign in</button>`;
   return `<div class="center"><div style="text-align:center;margin-bottom:24px"><img class="logo" src="icons/apple-touch-icon.png" alt=""><h1 class="title" style="margin:16px 0 4px">Pocket Ledger</h1><p class="muted" style="margin:0">Every Apple Pay tap, sorted by card and budget.</p></div>
-  ${L.step === 'email' ? `<form id="loginf"><div class="group"><input class="t" id="lemail" type="email" inputmode="email" autocomplete="username" autocapitalize="none" placeholder="you@example.com" aria-label="Email" required value="${esc(L.email)}"></div><button class="btn" style="margin-top:12px" ${L.busy ? 'disabled' : ''}>${L.busy ? 'Sending…' : 'Email me a code'}</button></form>`
-  : `<form id="codef"><p class="muted" style="text-align:center">Enter the code sent to <strong>${esc(L.email)}</strong>.</p><div class="group"><input class="t" id="lcode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" aria-label="Code" style="text-align:center;font-size:28px;letter-spacing:.3em"></div><button class="btn" style="margin-top:12px" ${L.busy ? 'disabled' : ''}>${L.busy ? 'Checking…' : 'Sign In'}</button><button type="button" class="link" style="width:100%;margin-top:8px" data-act="loginback">Use a different email</button></form>`}
-  ${L.error ? `<p class="err" role="alert">${esc(L.error)}</p>` : ''}</div>`;
+  ${body}${L.error ? `<p class="err" role="alert">${esc(L.error)}</p>` : ''}</div>`;
 }
 function renderTabs() {
   const t = (id, label) => `<button class="tab" data-act="tab" data-v="${id}" ${S.tab === id ? 'aria-current="page"' : ''}>${I[id]}${label}</button>`;
@@ -383,20 +393,34 @@ function onCarousel(e) {
 
 /* ───────────── login ───────────── */
 function wireLogin() {
-  $('#loginf')?.addEventListener('submit', async (e) => {
+  const go = (id, fn) => $(id)?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = $('#lemail').value.trim(); if (!email) return;
-    Object.assign(S.login, { email, busy: true, error: '' }); render();
-    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
-    Object.assign(S.login, { busy: false, error: error ? error.message : '', step: error ? 'email' : 'code' }); render();
-    setTimeout(() => $('#lcode')?.focus(), 50);
-  });
-  $('#codef')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const token = $('#lcode').value.replace(/\D/g, ''); if (token.length < 6) return;
+    const em = $('#lemail'); if (em) S.login.email = em.value.trim();
     Object.assign(S.login, { busy: true, error: '' }); render();
-    const { error } = await sb.auth.verifyOtp({ email: S.login.email, token, type: 'email' });
-    Object.assign(S.login, { busy: false, error: error ? error.message : '' }); render();
+    try { await fn(); } catch (err) { S.login.error = err?.message || 'Something went wrong.'; }
+    S.login.busy = false; render();
+  });
+  const fail = (error) => { if (error) throw error; };
+  go('#signinf', async () => {
+    const { error } = await sb.auth.signInWithPassword({ email: S.login.email, password: $('#lpass').value });
+    if (error && /confirm/i.test(error.message)) throw new Error('Confirm your email first: open the link we sent you, then sign in here.');
+    fail(error);
+  });
+  go('#signupf', async () => {
+    const { data, error } = await sb.auth.signUp({ email: S.login.email, password: $('#lpass').value, options: { emailRedirectTo: location.origin + location.pathname } });
+    fail(error);
+    if (!data.session) Object.assign(S.login, { step: 'checkemail', info: `We sent a confirmation link to ${S.login.email}. Open it (it may open in Safari, that’s fine), then come back here and sign in with your password.` });
+  });
+  go('#resetf', async () => {
+    const { error } = await sb.auth.resetPasswordForEmail(S.login.email, { redirectTo: location.origin + location.pathname });
+    fail(error);
+    Object.assign(S.login, { step: 'checkemail', info: `If ${S.login.email} has an account, a reset link is on its way. Open it on this device to choose a new password.` });
+  });
+  go('#newpassf', async () => {
+    const { error } = await sb.auth.updateUser({ password: $('#lnewpass').value });
+    fail(error);
+    S.login.step = 'signin'; toast('Password updated');
+    const { data } = await sb.auth.getSession(); if (data.session) await start(data.session);
   });
 }
 
@@ -792,7 +816,7 @@ document.addEventListener('click', (e) => {
     doimport: () => doImport(el),
     export: exportCsv,
     dismissinstall: () => { LS.set('pl-install-dismissed', Date.now()); render(); },
-    loginback: () => { Object.assign(S.login, { step: 'email', error: '' }); render(); },
+    loginstep: () => { Object.assign(S.login, { step: v, error: '' }); render(); },
     signout: async () => { await sb.auth.signOut(); LS.del('pl-snapshot'); LS.del('pl-queue'); location.reload(); },
   };
   A[act]?.();
@@ -812,6 +836,7 @@ setInterval(() => { if (document.visibilityState === 'visible' && S.session) ref
 
 /* ───────────── boot ───────────── */
 async function start(session) {
+  if (S.login.step === 'newpass') return;
   S.session = session; S.uid = session?.user?.id || null; S.email = session?.user?.email || '';
   if (!S.uid) { S.ready = true; render(); return; }
   if (restoreSnapshot()) { S.ready = true; render(); }
@@ -824,6 +849,7 @@ if (!CONFIGURED) render();
 else {
   sb.auth.getSession().then(({ data }) => start(data.session));
   sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') { S.session = null; S.login.step = 'newpass'; render(); return; }
     if (event === 'SIGNED_IN' && session?.user?.id !== S.uid) start(session);
     if (event === 'SIGNED_OUT') { S.session = null; S.uid = null; render(); }
     if (event === 'TOKEN_REFRESHED') S.session = session;

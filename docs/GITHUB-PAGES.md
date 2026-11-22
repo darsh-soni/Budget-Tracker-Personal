@@ -16,17 +16,15 @@ Final URL: **https://darsh-soni.github.io/Budget-Tracker-Personal/**
 1. Sign up at supabase.com and click **New project**. Pick a region close to you (e.g. *Canada (Central)*), set a database password and keep it somewhere safe.
 2. When it's ready, open **SQL Editor → New query**, paste the whole of `supabase/migrations/0001_init.sql`, and click **Run**. You should see "Success. No rows returned".
 
-## 2. Turn on email sign-in with a code
+## 2. Set up sign-in (email + password)
 
-1. **Authentication → Sign In / Providers → Email**: make sure it's enabled.
-2. **Authentication → Emails → Templates**. In both **Magic Link** and **Confirm signup**, add the code so you can type it into the app:
-   ```html
-   <h2>Your Pocket Ledger code</h2>
-   <p>Enter this code in the app: <strong style="font-size:24px">{{ .Token }}</strong></p>
-   ```
-3. **Authentication → URL Configuration**: set **Site URL** to `https://darsh-soni.github.io/Budget-Tracker-Personal/` and add the same URL under **Redirect URLs**.
+No email-template changes are needed; the app works with Supabase's default emails.
 
-The built-in email sender allows only a few emails per hour. That's fine for one person; set up custom SMTP (Project Settings → Authentication) if you share the app.
+1. **Authentication → Sign In / Providers → Email**: make sure it's enabled. Leave **Confirm email** on.
+2. **Authentication → URL Configuration**: set **Site URL** to `https://darsh-soni.github.io/Budget-Tracker-Personal/` and add the same URL under **Redirect URLs**. The confirmation and password-reset links open this address.
+3. After you've created your own account in the app, you can stop strangers signing up: **Authentication → Sign In / Providers → Allow new users to sign up: off**.
+
+The built-in email sender allows only a few emails per hour, which is fine for one person.
 
 ## 3. Deploy the wallet function
 
@@ -61,7 +59,7 @@ The built-in email sender allows only a few emails per hour. That's fine for one
 
 1. Open **https://darsh-soni.github.io/Budget-Tracker-Personal/** in Safari.
 2. **Share → Add to Home Screen**, then open it from the Home Screen.
-3. Sign in with your email and the code you're sent.
+3. Tap **Create an account**, open the confirmation email's link (it may open in Safari), then sign in with your password in the Home Screen app.
 4. **Settings → Cards**: add your cards using the names Apple Wallet shows.
 5. **Settings → Connect Apple Wallet**: tap **Send test transaction**. It should show a green ✓.
 
@@ -88,7 +86,7 @@ This version doesn't open anything when you pay. If you built the earlier "Open 
 |---|---|
 | Wallet capture, duplicate protection, card matching, auto-categorize | ✓ (in the Edge Function) |
 | Cards, budgets, charts, search, CSV import/export, learned rules | ✓ |
-| Email sign-in with a code | ✓ |
+| Email + password sign-in, password reset | ✓ |
 | Offline: opens with last-loaded data; manual entries queue and sync | ✓ |
 | Budget alerts | In-app banners only (no push notifications yet) |
 | Face ID passkeys | Not yet (needs extra server code) |
