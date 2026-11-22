@@ -59,11 +59,21 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Use POST' }, 405);
 
   const token = (req.headers.get('x-api-key') ?? '').trim();
-  if (!/^[a-f0-9]{64}$/.test(token)) return json({ error: 'Invalid API key' }, 401);
+  if (!token) return json({ error: 'Invalid API key: the X-Api-Key header is missing or empty.' }, 401);
+  if (!/^[a-f0-9]{64}$/.test(token)) return json({ error: `Invalid API key: expected 64 letters/digits, got ${token.length} characters. Copy the key again from the app.` }, 401);
 
-  const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
-  const { data: user } = await db.from('users').select('id,currency').eq('api_token', token).maybeSingle();
-  if (!user) return json({ error: 'Invalid API key' }, 401);
+  // Service key: legacy env var, or the newer secret key list if legacy keys are disabled.
+  let serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!serviceKey) { try { serviceKey = Object.values(JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}'))[0] as string ?? ''; } catch { /* ignore */ } }
+  if (!serviceKey) { console.error('no service key in env'); return json({ error: 'Server setup: no service key available to the function.' }, 500); }
+
+  const db = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey, { auth: { persistSession: false } });
+  const { data: user, error: userErr } = await db.from('users').select('id,currency').eq('api_token', token).maybeSingle();
+  if (userErr) {
+    console.error('users lookup failed', userErr);
+    return json({ error: `Database error: ${userErr.message}. Has the setup SQL (0001_init.sql) been run?` }, 500);
+  }
+  if (!user) return json({ error: 'Invalid API key: no account has this key. Copy it again from the app (it changes if you tap Regenerate).' }, 401);
 
   let raw: Record<string, unknown>;
   try { raw = await req.json(); } catch { return json({ error: 'Body must be JSON' }, 400); }
