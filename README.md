@@ -4,6 +4,8 @@ A mobile-first budget tracker built as a Progressive Web App that feels native o
 logged automatically through an iOS Shortcuts automation, organized by card and category, and checked against
 monthly budgets with push alerts.
 
+> **Two ways to run it.** `site/` is a no-build static version for **GitHub Pages + Supabase** (see [docs/GITHUB-PAGES.md](docs/GITHUB-PAGES.md)). The rest of this README covers the full Next.js version for Vercel.
+
 **Stack:** Next.js 15 (App Router, TypeScript) · Supabase (Postgres, Auth, RLS) · Web Push (VAPID) · WebAuthn passkeys · Vercel
 
 ## Features

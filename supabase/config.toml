@@ -1,0 +1,4 @@
+# Used by the Supabase CLI. The wallet function is called by the iOS Shortcut with an
+# X-Api-Key header, not a Supabase login, so JWT verification must be off.
+[functions.wallet]
+verify_jwt = false
